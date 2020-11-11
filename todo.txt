@@ -5,4 +5,5 @@
 5. create/open folders/etc - open
 6. open aplications - crazy, to investigate
 7. weather - done
-8. add handle exception when no params is given -> jarvis ask for more detals - open
+8. add handle exception when no params is given -> jarvis ask for more detals, maybe as decorator?? - open
+9. create files with voice to speed up jarvis

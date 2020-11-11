@@ -7,3 +7,4 @@
 7. weather - done
 8. add handle exception when no params is given -> jarvis ask for more detals, maybe as decorator?? - open
 9. create files with voice to speed up jarvis
+19. compare gtts and pyttsx3 -> speed, options etc

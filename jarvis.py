@@ -66,11 +66,9 @@ class Jarvis:
     def start(self):
         self.welcome()
         with self.micro as source:
-            print("ala")
             while self.working:
                 try:
                     audio = self.recognizer.listen(source)
-                    print("kasia")
                     self.process_order(self.recognizer.recognize_google(audio))
 
                 except sr.UnknownValueError:
@@ -82,6 +80,7 @@ class Jarvis:
         try:
             url = f"www.{self.params[0]}.com"
         except IndexError:
+            self.browse()
             url = "www.google.com"
         wb.open(url)
 
@@ -119,16 +118,35 @@ class Jarvis:
         os.system("shutdown /s /t 1")
 
     def stopper(self):
-        self.speak("Ready, Set, Go")
+        self.speak("How long")
         try:
-            duration = int(self.params[0])
-        except ValueError:
-            duration = 60
-        start = datetime.datetime.now()
-        end = start + datetime.timedelta(0, duration)
-        while datetime.datetime.now() < end:
-            pass
-        self.speak("Finish")
+            audio = self.recognizer.listen(self.micro)
+            text = self.recognizer.recognize_google(audio)
+            num, time_unit = text.lower().split()
+
+            multipliers = {
+                "seconds": 1,
+                "minutes": 60,
+                "hours": 3600,
+            }
+            multiplier = [value for (key, value) in multipliers.items()
+                          if time_unit == key][0]
+
+            duration = int(num) * multiplier
+
+            self.speak("Ready, Set, Go")
+            start = datetime.datetime.now()
+            end = start + datetime.timedelta(0, duration)
+            while datetime.datetime.now() < end:
+                pass
+
+            self.speak("Finish")
+
+        except sr.UnknownValueError:
+            self.speak("Sphinx could not understand audio, can you repeat?")
+            self.stopper()
+        except sr.RequestError as e:
+            self.speak("Sphinx error; {0}".format(e))
 
     def introduce_yourself(self):
         self.speak("I am Jarvis")

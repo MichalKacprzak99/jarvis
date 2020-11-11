@@ -14,6 +14,7 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
 from pymongo import MongoClient, DESCENDING
+from utils import run_audio_file
 
 
 class Jarvis:
@@ -47,21 +48,22 @@ class Jarvis:
             "note": self.read_note,
         }
 
-    def speak(self, message):
+    def convert_text_to_speech(self, message):
         self.engine.say(message)
         self.engine.runAndWait()
 
-    def welcome(self):
+    @staticmethod
+    def welcome():
         hour = int(datetime.datetime.now().hour)
         greetings = {
-            (0, 11): "Good Morning!",
-            (12, 17): "Good Afternoon!",
-            (18, 23): "Good Evening!",
+            (0, 11): "Good Morning",
+            (12, 17): "Good Afternoon",
+            (18, 23): "Good Evening",
         }
         greeting = [value for (key, value) in greetings.items()
                     if hour in set(np.linspace(*key, dtype=int))]
-        self.speak(*greeting)
-        self.speak("How may I help you?")
+        run_audio_file(*greeting)
+        run_audio_file("How may I help you")
 
     def start(self):
         self.welcome()
@@ -72,9 +74,9 @@ class Jarvis:
                     self.process_order(self.recognizer.recognize_google(audio))
 
                 except sr.UnknownValueError:
-                    self.speak("Sphinx could not understand audio, can you repeat?")
-                except sr.RequestError as e:
-                    self.speak("Sphinx error; {0}".format(e))
+                    run_audio_file("Sphinx could not understand audio, can you repeat?")
+                except sr.RequestError:
+                    run_audio_file("Sphinx error")
 
     def browse(self):
         try:
@@ -85,15 +87,14 @@ class Jarvis:
         wb.open(url)
 
     def stop(self):
-        self.speak("GoodBye")
+        run_audio_file("GoodBye")
         self.working = False
 
     def joke(self):
-        self.speak("I have a joke for u")
+        run_audio_file("I have a joke for u")
         joke = pyjokes.get_joke()
         print(joke)
-        self.engine.say(joke)
-        self.engine.runAndWait()
+        self.convert_text_to_speech(joke)
 
     def google(self):
         try:
@@ -113,12 +114,12 @@ class Jarvis:
         wb.open(url)
 
     def end(self):
-        self.speak("See you again")
+        run_audio_file("See you again")
         self.working = False
         os.system("shutdown /s /t 1")
 
     def stopper(self):
-        self.speak("How long")
+        run_audio_file("How long")
         try:
             audio = self.recognizer.listen(self.micro)
             text = self.recognizer.recognize_google(audio)
@@ -134,28 +135,29 @@ class Jarvis:
 
             duration = int(num) * multiplier
 
-            self.speak("Ready, Set, Go")
+            run_audio_file("Ready, Set, Go")
             start = datetime.datetime.now()
             end = start + datetime.timedelta(0, duration)
             while datetime.datetime.now() < end:
                 pass
 
-            self.speak("Finish")
+            run_audio_file("Finish")
 
         except sr.UnknownValueError:
-            self.speak("Sphinx could not understand audio, can you repeat?")
+            run_audio_file("Sphinx could not understand audio, can you repeat?")
             self.stopper()
-        except sr.RequestError as e:
-            self.speak("Sphinx error; {0}".format(e))
+        except sr.RequestError:
+            run_audio_file("Sphinx error")
 
-    def introduce_yourself(self):
-        self.speak("I am Jarvis")
+    @staticmethod
+    def introduce_yourself():
+        run_audio_file("I am Jarvis")
 
     def process_order(self, text):
         sentence_to_analyze = TextBlob(text.lower())
         polarity = sentence_to_analyze.sentiment.polarity
         if polarity < 0:
-            self.speak("You seem sad")
+            run_audio_file("You seem sad")
             self.joke()
 
         tokenized_text = sentence_to_analyze.tokenize()
@@ -174,7 +176,7 @@ class Jarvis:
                 break
 
         if matched is False:
-            self.speak("No match for commend")
+            run_audio_file("No match for commend")
 
     def weather(self):
         base_url = "http://api.openweathermap.org/data/2.5/weather?"
@@ -193,16 +195,16 @@ class Jarvis:
 
             weather_description = response["weather"][0]["description"]
 
-            self.speak(f"Temperature (in celsius unit) ={current_temperature} "
-                       f"atmospheric pressure (in hPa unit) = {current_pressure} "
-                       f" humidity (in percentage) = {current_humidity} "
-                       f"description = {weather_description}")
+            self.convert_text_to_speech(f"Temperature (in celsius unit) ={current_temperature} "
+                                        f"atmospheric pressure (in hPa unit) = {current_pressure} "
+                                        f" humidity (in percentage) = {current_humidity} "
+                                        f"description = {weather_description}")
 
         else:
-            self.speak(" City Not Found ")
+            run_audio_file("City Not Found")
 
     def take_note(self):
-        self.speak("What note")
+        run_audio_file("What note")
         try:
             audio = self.recognizer.listen(self.micro)
             text = self.recognizer.recognize_google(audio)
@@ -214,11 +216,11 @@ class Jarvis:
             self.notes.insert_one(note)
 
         except sr.UnknownValueError:
-            self.speak("Sphinx could not understand audio, can you repeat?")
+            run_audio_file("Sphinx could not understand audio, can you repeat?")
             self.take_note()
-        except sr.RequestError as e:
-            self.speak("Sphinx error; {0}".format(e))
+        except sr.RequestError:
+            run_audio_file("Sphinx error")
 
     def read_note(self):
         last_note = self.notes.find().sort("date", DESCENDING)[0]
-        self.speak(last_note["text"])
+        self.convert_text_to_speech(last_note["text"])

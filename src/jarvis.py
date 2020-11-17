@@ -3,17 +3,18 @@ import os
 import webbrowser as wb
 import requests
 
-import numpy as np
 import pyjokes
+import pyttsx3
+import nltk
+import numpy as np
 import pytemperature
 import wikipedia as wiki
-import pyttsx3
 import speech_recognition as sr
 from textblob import TextBlob
-import nltk
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
 from pymongo import MongoClient, DESCENDING
+
 from utils import run_audio_file
 
 
@@ -27,11 +28,9 @@ class Jarvis:
         self.micro = sr.Microphone()
         self.engine = pyttsx3.init()
         self.engine.setProperty('rate', 125)
-        self.order = ""
         voices = self.engine.getProperty('voices')
         self.engine.setProperty('voice', voices[1].id)
         self.stemmer = SnowballStemmer("english")
-        self.command = ""
         self.params = []
         self.working = True
         self.commands = {
@@ -66,51 +65,70 @@ class Jarvis:
         run_audio_file("How may I help you")
 
     def start(self):
+        waiting_for_order = True
         self.welcome()
         with self.micro as source:
             while self.working:
                 try:
-                    audio = self.recognizer.listen(source)
-                    self.process_order(self.recognizer.recognize_google(audio))
-
+                    audio = self.recognizer.listen(source, timeout=3)
+                    order = self.recognizer.recognize_google(audio)
+                    if "Jarvis" in order:
+                        waiting_for_order = False
+                        self.process_order(order, source)
+                        waiting_for_order = True
                 except sr.UnknownValueError:
-                    run_audio_file("Sphinx could not understand audio, can you repeat?")
+                    if waiting_for_order is False:
+                        run_audio_file("Sphinx could not understand audio can you repeat")
                 except sr.RequestError:
                     run_audio_file("Sphinx error")
+                except sr.WaitTimeoutError:
+                    pass
 
-    def browse(self):
-        try:
+    def browse(self, source):
+        if not self.params:
+            run_audio_file("What do you want to browse")
+            audio = self.recognizer.listen(source)
+            browse_for = self.recognizer.recognize_google(audio)
+            url = f"www.{browse_for}.com"
+        else:
             url = f"www.{self.params[0]}.com"
-        except IndexError:
-            self.browse()
-            url = "www.google.com"
+
         wb.open(url)
 
-    def stop(self):
+    def stop(self, _):
         run_audio_file("GoodBye")
         self.working = False
 
-    def joke(self):
+    def joke(self, _):
         run_audio_file("I have a joke for u")
         joke = pyjokes.get_joke()
-        print(joke)
         self.convert_text_to_speech(joke)
 
-    def google(self):
-        try:
+    def google(self, source):
+
+        if not self.params:
+            run_audio_file("What do you want to google")
+            audio = self.recognizer.listen(source, timeout=1)
+            google_for = self.recognizer.recognize_google(audio)
+            query = google_for.replace(" ", "+")
+        else:
             query = "+".join(self.params)
-            url = f"www.google.com/search?q={query}"
-        except IndexError:
-            url = "www.google.com"
+        url = f"www.google.com/search?q={query}"
+
         wb.open(url)
 
-    def search(self):
-        try:
+    def search(self, source):
+
+        if not self.params:
+            run_audio_file("What do you want to search in wikipedia")
+            audio = self.recognizer.listen(source)
+            search_for = self.recognizer.recognize_google(audio)
+            result = wiki.search(search_for)[0]
+        else:
             result = wiki.search(" ".join(self.params))[0]
-            page = wiki.page(result)
-            url = page.url
-        except IndexError:
-            url = "www.google.com"
+        page = wiki.page(result)
+        url = page.url
+
         wb.open(url)
 
     def end(self):
@@ -118,47 +136,44 @@ class Jarvis:
         self.working = False
         os.system("shutdown /s /t 1")
 
-    def stopper(self):
-        run_audio_file("How long")
-        try:
-            audio = self.recognizer.listen(self.micro)
+    def stopper(self, source):
+        if not self.params:
+            run_audio_file("How long")
+            audio = self.recognizer.listen(source)
             text = self.recognizer.recognize_google(audio)
             num, time_unit = text.lower().split()
+        else:
+            [elem.lower() for elem in self.params]
+            num, time_unit = self.params
 
-            multipliers = {
-                "seconds": 1,
-                "minutes": 60,
-                "hours": 3600,
-            }
-            multiplier = [value for (key, value) in multipliers.items()
-                          if time_unit == key][0]
+        multipliers = {
+            "seconds": 1,
+            "minutes": 60,
+            "hours": 3600,
+        }
+        multiplier = [value for (key, value) in multipliers.items()
+                      if time_unit == key][0]
 
-            duration = int(num) * multiplier
+        duration = int(num) * multiplier
 
-            run_audio_file("Ready, Set, Go")
-            start = datetime.datetime.now()
-            end = start + datetime.timedelta(0, duration)
-            while datetime.datetime.now() < end:
-                pass
+        run_audio_file("Ready Set Go")
+        start = datetime.datetime.now()
+        end = start + datetime.timedelta(0, duration)
+        while datetime.datetime.now() < end:
+            pass
 
-            run_audio_file("Finish")
-
-        except sr.UnknownValueError:
-            run_audio_file("Sphinx could not understand audio, can you repeat?")
-            self.stopper()
-        except sr.RequestError:
-            run_audio_file("Sphinx error")
+        run_audio_file("Finish")
 
     @staticmethod
     def introduce_yourself():
         run_audio_file("I am Jarvis")
 
-    def process_order(self, text):
+    def process_order(self, text, source):
         sentence_to_analyze = TextBlob(text.lower())
         polarity = sentence_to_analyze.sentiment.polarity
         if polarity < 0:
             run_audio_file("You seem sad")
-            self.joke()
+            self.joke(source)
 
         tokenized_text = sentence_to_analyze.tokenize()
         filtered_words = [word for word in tokenized_text
@@ -172,15 +187,20 @@ class Jarvis:
                 matched = True
                 ind = words.index(word)
                 self.params = words[ind + 1:]
-                self.commands[word]()
+                self.commands[word](source)
                 break
 
         if matched is False:
             run_audio_file("No match for commend")
 
-    def weather(self):
+    def weather(self, source):
+        if not self.params:
+            run_audio_file("Where do you want to check the weather")
+            audio = self.recognizer.listen(source)
+            city_name = self.recognizer.recognize_google(audio)
+        else:
+            city_name = self.params[0]
         base_url = "http://api.openweathermap.org/data/2.5/weather?"
-        city_name = self.params[0]
         complete_url = f"{base_url}appid={self.api_key_weather}&q={city_name}"
         response = requests.get(complete_url).json()
         if response["cod"] != "404":
@@ -203,24 +223,21 @@ class Jarvis:
         else:
             run_audio_file("City Not Found")
 
-    def take_note(self):
+    def take_note(self, source):
         run_audio_file("What note")
-        try:
-            audio = self.recognizer.listen(self.micro)
-            text = self.recognizer.recognize_google(audio)
-            note = {
-                "date": datetime.datetime.now().strftime("%c"),
-                "Author": "Michał",
-                "text": text
-            }
-            self.notes.insert_one(note)
 
-        except sr.UnknownValueError:
-            run_audio_file("Sphinx could not understand audio, can you repeat?")
-            self.take_note()
-        except sr.RequestError:
-            run_audio_file("Sphinx error")
+        audio = self.recognizer.listen(source)
+        text = self.recognizer.recognize_google(audio)
+        note = {
+            "date": datetime.datetime.now().strftime("%c"),
+            "Author": "Michał",
+            "text": text
+        }
+        self.notes.insert_one(note)
 
     def read_note(self):
-        last_note = self.notes.find().sort("date", DESCENDING)[0]
-        self.convert_text_to_speech(last_note["text"])
+        try:
+            last_note = self.notes.find().sort("date", DESCENDING)[0]
+            self.convert_text_to_speech(last_note["text"])
+        except IndexError:
+            run_audio_file("There are no notes saved")

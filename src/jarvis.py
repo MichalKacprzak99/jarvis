@@ -235,7 +235,7 @@ class Jarvis:
         }
         self.notes.insert_one(note)
 
-    def read_note(self):
+    def read_note(self, _):
         try:
             last_note = self.notes.find().sort("date", DESCENDING)[0]
             self.convert_text_to_speech(last_note["text"])

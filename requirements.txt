@@ -3,8 +3,11 @@ gtts
 requests
 pyjokes
 pyttsx3
-numpy
+numpy==1.19.3
 pytemperature
 wikipedia
 textblob
 pymongo
+nltk
+SpeechRecognition
+pyaudio

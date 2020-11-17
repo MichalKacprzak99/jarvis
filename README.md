@@ -12,8 +12,8 @@ We all know the Iron Man, the genius. He created Jarvis during his lifetime.
 It was an artificial intelligence that helped him fight evil. 
 
 ## Installation
-    $ git clone https://github.com/eriklindernoren/Keras-GAN
-    $ cd Keras-GAN/
+    $ git clone https://github.com/MichalKacprzak99/jarvis.git
+    $ cd jarvis/
     $ sudo pip3 install -r requirements.txt
 
 ## How to use it?

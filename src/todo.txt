@@ -5,6 +5,9 @@
 5. create/open folders/etc - open
 6. open aplications - crazy, to investigate
 7. weather - done
-8. add handle exception when no params is given -> jarvis ask for more detals, maybe as decorator?? - open
-9. create files with voice to speed up jarvis
-19. compare gtts and pyttsx3 -> speed, options etc
+8. add handle exception when no params is given -> jarvis ask for more detals, maybe as decorator?? - done
+9. create files with voice to speed up jarvis - done
+10. compare gtts and pyttsx3 -> speed, options etc - open
+11. add readme
+12. add tests
+13. add trigger word -done

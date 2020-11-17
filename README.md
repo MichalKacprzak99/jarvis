@@ -1,11 +1,11 @@
 # Personal voice assistant - Jarvis
 ***Last Updted: 17 November, 2020***
 ## Table of Contents
- * [What is Jarvis AI?](#What-is-Jarvis-AI-?)
- * [Installation](#Installation)
- * [How to use it?](#How-to-use-it-?)
- * [Features](#Features)
- * [Future](#Future)
+ * [What is Jarvis AI?](#what-is-jarvis-ai)
+ * [Installation](#installation)
+ * [How to use it?](#how-to-use-it)
+ * [Features](#features)
+ * [Future](#future)
 
 ## What is Jarvis AI?
 We all know the Iron Man, the genius. He created Jarvis during his lifetime. 

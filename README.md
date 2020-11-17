@@ -17,7 +17,10 @@ It was an artificial intelligence that helped him fight evil.
     $ sudo pip3 install -r requirements.txt
 
 ## How to use it?
-
+If you've cloned the repository, just run main.py from the src folder. 
+For the first run, you will have to wait a while(about 2 minutes) before Jarvis speaks to you. 
+This is due to the fact that the appropriate .mp3 files must be generated and 
+the necessary nltk packages will be downloaded.
 ## Features
 Jarvis can:
 1. handle microphone input

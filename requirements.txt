@@ -1,0 +1,10 @@
+playsound
+gtts
+requests
+pyjokes
+pyttsx3
+numpy
+pytemperature
+wikipedia
+textblob
+pymongo

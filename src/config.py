@@ -11,7 +11,10 @@ load_dotenv(dotenv_path=env_path)
 
 @unique
 class Config(Enum):
+    """
+    Enum used for storing environment variables
+    """
     API_KEY_WEATHER = os.getenv('API_KEY_WEATHER')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.value)

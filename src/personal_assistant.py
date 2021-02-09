@@ -9,13 +9,41 @@ import speech_recognition as sr
 from textblob import TextBlob
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
-
 from sounds import Sounds
 
 
 class PersonalAssistant:
-    def __init__(self, name: str):
+    """
+    A class to represent voice personal assistant with basic features.
 
+    ...
+
+    Attributes
+    ----------
+    recognizer: speech_recognition.Recognizer
+        object of speech_recognition.Recognizer,  which represents a collection of speech recognition functionality
+    micro: speech_recognition.Microphone
+        object of speech_recognition.Microphone,  which represents a physical microphone on the computer
+    engine:
+        text to speech engine
+    stemmer: nltk.stem.snowball.SnowballStemmer
+        object of SnowballStemmer used in text analyze
+    working: bool
+        variable, which represent if personal assistant is working
+    name: str
+        name of the personal assistant
+    commands: dict
+        dictionary where are stored all implemented features
+    """
+    def __init__(self, name: str):
+        """
+        Creates a new ``PersonalAssistant`` instance, which represents voice personal assistant with basic features.
+
+        Parameters
+        ----------
+            name : str
+                name of the personal assistant
+        """
         self.recognizer = sr.Recognizer()
         self.micro = sr.Microphone()
         self.engine = pyttsx3.init()
@@ -23,7 +51,6 @@ class PersonalAssistant:
         voices = self.engine.getProperty('voices')
         self.engine.setProperty('voice', voices[1].id)
         self.stemmer = SnowballStemmer("english")
-        self.params = []
         self.working = True
         self.name = name
         self.commands = {
@@ -34,10 +61,21 @@ class PersonalAssistant:
         }
 
     def convert_text_to_speech(self, message):
+        """
+        String representation of parameter "message" will be converted to speech using self.engine
+
+        :param message: str
+        :return: None
+        """
         self.engine.say(message)
         self.engine.runAndWait()
 
     def welcome(self):
+        """
+        Personal assistant will greet you with the appropriate greeting depending on the current time
+
+        :return: None
+        """
         hour = int(datetime.datetime.now().hour)
         greetings = {
             (0, 11): Sounds.GOOD_MORNING,
@@ -50,6 +88,12 @@ class PersonalAssistant:
         self.convert_text_to_speech(Sounds.HELP)
 
     def start(self):
+        """
+        Main function responsible for convert voice command to text.
+        If in command there is no word equals to self.name the command is no longer process.
+
+        :return: None
+        """
         waiting_for_order = True
         self.welcome()
         with self.micro as source:
@@ -70,9 +114,25 @@ class PersonalAssistant:
                     pass
 
     def introduce_yourself(self, _):
+        """
+        Personal assistant introduce yourself using self.name
+
+        :return: None
+        """
         self.convert_text_to_speech(f"I am {self.name}")
 
-    def process_order(self, text: str, source):
+    def process_order(self, text: str, source: sr.Microphone):
+        """
+        Converted voice command is processed using nltk,TextBlob.
+        Command sentence is tokenized and filtered in purpose to catch "hot" words and decide
+        if sentence is connected with any implemented feature.
+
+        :param text: str
+            Voice command converted to text
+        :param source: speech_recognition.Microphone
+            object of speech_recognition.Microphone,  which represents a physical microphone on the computer
+        :return: None
+        """
         sentence_to_analyze = TextBlob(text.lower())
         polarity = sentence_to_analyze.sentiment.polarity
         if polarity < 0:
@@ -85,28 +145,40 @@ class PersonalAssistant:
         tagged = nltk.pos_tag(filtered_words)
         words = [self.stemmer.stem(word) if tag in ('VB', 'VBG') else word
                  for (word, tag) in tagged]
-        matched = False
-        for word in words:
-            if word in self.commands.keys():
-                matched = True
-                ind = words.index(word)
-                self.params = words[ind + 1:]
-                self.commands[word](source)
-                break
 
-        if matched is False:
+        for index, word in enumerate(words):
+            if word in self.commands.keys():
+                params = words[index + 1:]
+                self.commands[word](source, params)
+                break
+        else:
             self.convert_text_to_speech(Sounds.NO_COMMEND)
 
     def stop(self, _):
+        """
+        The personal assistant stops the program
+
+        :return: None
+        """
         self.convert_text_to_speech(Sounds.GOODBYE)
         self.working = False
 
     def end(self, _):
+        """
+        The personal assistant stops the program and shuts down the computer
+
+        :return: None
+        """
         self.convert_text_to_speech(Sounds.END)
         self.working = False
         os.system("shutdown /s /t 1")
 
     def joke(self, _):
+        """
+        Personal assistant will tell random joke(from pyjokes library)
+
+        :return: None
+        """
         self.convert_text_to_speech(Sounds.JOKE)
         joke = pyjokes.get_joke()
         self.convert_text_to_speech(joke)

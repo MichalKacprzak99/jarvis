@@ -3,6 +3,9 @@ from enum import Enum, unique
 
 @unique
 class Sounds(Enum):
+    """
+    Enum used for storing hard coded phrases, which personal assistant will say
+    """
     GOOD_MORNING = "Good Morning"
     GOOD_AFTERNOON = "Good Afternoon"
     GOOD_EVENING = "Good Evening"
@@ -26,5 +29,5 @@ class Sounds(Enum):
     CREATE_NOTE = "What note"
     HOW_LONG = "How long"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.value)

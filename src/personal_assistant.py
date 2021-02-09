@@ -9,19 +9,13 @@ import speech_recognition as sr
 from textblob import TextBlob
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
-from pymongo import MongoClient
 
 from sounds import Sounds
-from config import Config
 
 
 class PersonalAssistant:
-    def __init__(self, name):
+    def __init__(self, name: str):
 
-        self.api_key_weather = Config.API_KEY_WEATHER
-        self.mongo_client = MongoClient()
-        self.database = self.mongo_client.database
-        self.notes = self.database.notes
         self.recognizer = sr.Recognizer()
         self.micro = sr.Microphone()
         self.engine = pyttsx3.init()
@@ -39,7 +33,7 @@ class PersonalAssistant:
             "end": self.end,
         }
 
-    def convert_text_to_speech(self, message: str):
+    def convert_text_to_speech(self, message):
         self.engine.say(message)
         self.engine.runAndWait()
 
@@ -78,7 +72,7 @@ class PersonalAssistant:
     def introduce_yourself(self, _):
         self.convert_text_to_speech(f"I am {self.name}")
 
-    def process_order(self, text, source):
+    def process_order(self, text: str, source):
         sentence_to_analyze = TextBlob(text.lower())
         polarity = sentence_to_analyze.sentiment.polarity
         if polarity < 0:

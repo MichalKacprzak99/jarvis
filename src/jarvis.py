@@ -4,16 +4,20 @@ import requests
 import pytemperature
 import wikipedia as wiki
 
-from pymongo import DESCENDING
+from pymongo import DESCENDING, MongoClient
 
 from sounds import Sounds
 from personal_assistant import PersonalAssistant
+from config import Config
 
 
 class Jarvis(PersonalAssistant):
     def __init__(self):
         super().__init__("Jarvis")
-
+        self.mongo_client = MongoClient()
+        self.database = self.mongo_client.database
+        self.notes = self.database.notes
+        self.api_key_weather = Config.API_KEY_WEATHER
         self.commands.update({
             "browse": self.browse,
             "search": self.search,

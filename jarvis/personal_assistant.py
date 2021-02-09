@@ -9,7 +9,7 @@ import speech_recognition as sr
 from textblob import TextBlob
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
-from phrases import BasicPhrases
+from .phrases import BasicPhrases
 
 
 class PersonalAssistant:

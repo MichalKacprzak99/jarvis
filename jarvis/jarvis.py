@@ -7,9 +7,9 @@ import wikipedia as wiki
 from pymongo import DESCENDING, MongoClient
 
 
-from personal_assistant import PersonalAssistant
-from config import Config
-from phrases import JarvisPhrases
+from .personal_assistant import PersonalAssistant
+from .config import Config
+from .phrases import JarvisPhrases
 
 
 class Jarvis(PersonalAssistant):

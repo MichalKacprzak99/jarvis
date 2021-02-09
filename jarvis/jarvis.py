@@ -6,9 +6,10 @@ import wikipedia as wiki
 
 from pymongo import DESCENDING, MongoClient
 
-from sounds import Sounds
+
 from personal_assistant import PersonalAssistant
 from config import Config
+from phrases import JarvisPhrases
 
 
 class Jarvis(PersonalAssistant):
@@ -59,7 +60,7 @@ class Jarvis(PersonalAssistant):
         :return: None
         """
         if not params:
-            self.convert_text_to_speech(Sounds.BROWSE)
+            self.convert_text_to_speech(JarvisPhrases.BROWSE)
             audio = self.recognizer.listen(source)
             browse_for = self.recognizer.recognize_google(audio)
             url = f"www.{browse_for}.com"
@@ -100,7 +101,7 @@ class Jarvis(PersonalAssistant):
         :return: None
         """
         if not params:
-            self.convert_text_to_speech(Sounds.WIKIPEDIA)
+            self.convert_text_to_speech(JarvisPhrases.WIKIPEDIA)
             audio = self.recognizer.listen(source)
             search_for = self.recognizer.recognize_google(audio)
             result = wiki.search(search_for)[0]
@@ -123,7 +124,7 @@ class Jarvis(PersonalAssistant):
         :return: None
         """
         if not params:
-            self.convert_text_to_speech(Sounds.HOW_LONG)
+            self.convert_text_to_speech(JarvisPhrases.HOW_LONG)
             audio = self.recognizer.listen(source)
             text = self.recognizer.recognize_google(audio)
             num, time_unit = text.lower().split()
@@ -141,13 +142,13 @@ class Jarvis(PersonalAssistant):
 
         duration = int(num) * multiplier
 
-        self.convert_text_to_speech(Sounds.START)
+        self.convert_text_to_speech(JarvisPhrases.START)
         start = datetime.datetime.now()
         end = start + datetime.timedelta(0, duration)
         while datetime.datetime.now() < end:
             pass
 
-        self.convert_text_to_speech(Sounds.FINISH)
+        self.convert_text_to_speech(JarvisPhrases.FINISH)
 
     def weather(self, source, params):
         """
@@ -160,7 +161,7 @@ class Jarvis(PersonalAssistant):
         :return: None
         """
         if not params:
-            self.convert_text_to_speech(Sounds.WEATHER)
+            self.convert_text_to_speech(JarvisPhrases.WEATHER)
             audio = self.recognizer.listen(source)
             city_name = self.recognizer.recognize_google(audio)
         else:
@@ -186,7 +187,7 @@ class Jarvis(PersonalAssistant):
                                         f' humidity (in percentage) = {current_humidity} '
                                         f'description = {weather_description}')
         else:
-            self.convert_text_to_speech(Sounds.NO_CITY)
+            self.convert_text_to_speech(JarvisPhrases.NO_CITY)
 
     def take_note(self, source):
         """
@@ -196,7 +197,7 @@ class Jarvis(PersonalAssistant):
         object of speech_recognition.Microphone,  which represents a physical microphone on the computer
         :return: None
         """
-        self.convert_text_to_speech(Sounds.CREATE_NOTE)
+        self.convert_text_to_speech(JarvisPhrases.CREATE_NOTE)
 
         audio = self.recognizer.listen(source)
         text = self.recognizer.recognize_google(audio)
@@ -216,4 +217,4 @@ class Jarvis(PersonalAssistant):
             last_note = self.notes.find().sort("date", DESCENDING)[0]
             self.convert_text_to_speech(last_note["text"])
         except IndexError:
-            self.convert_text_to_speech(Sounds.NO_NOTES)
+            self.convert_text_to_speech(JarvisPhrases.NO_NOTES)

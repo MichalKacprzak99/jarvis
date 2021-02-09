@@ -2,7 +2,7 @@ from enum import Enum, unique
 
 
 @unique
-class Sounds(Enum):
+class BasicPhrases(Enum):
     """
     Enum used for storing hard coded phrases, which personal assistant will say
     """
@@ -19,13 +19,24 @@ class Sounds(Enum):
     INTRODUCE = "I am Jarvis"
     SAD = "You seem sad"
     NO_COMMEND = "No match for commend"
+    HELP = "How may I help you"
+
+    def __str__(self) -> str:
+        return str(self.value)
+
+
+@unique
+class JarvisPhrases(Enum):
+    """
+    Enum used for storing hard coded phrases, which Jarvis will say
+    """
     NO_NOTES = "There are no notes saved"
     NO_CITY = "City Not Found"
     BROWSE = "What do you want to browse"
     GOOGLE = "What do you want to google"
     WIKIPEDIA = "What do you want to search in wikipedia",
     WEATHER = "Where do you want to check the weather"
-    HELP = "How may I help you"
+
     CREATE_NOTE = "What note"
     HOW_LONG = "How long"
 

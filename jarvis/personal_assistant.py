@@ -9,7 +9,7 @@ import speech_recognition as sr
 from textblob import TextBlob
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
-from sounds import Sounds
+from phrases import BasicPhrases
 
 
 class PersonalAssistant:
@@ -78,14 +78,14 @@ class PersonalAssistant:
         """
         hour = int(datetime.datetime.now().hour)
         greetings = {
-            (0, 11): Sounds.GOOD_MORNING,
-            (12, 17): Sounds.GOOD_AFTERNOON,
-            (18, 23): Sounds.GOOD_EVENING,
+            (0, 11): BasicPhrases.GOOD_MORNING,
+            (12, 17): BasicPhrases.GOOD_AFTERNOON,
+            (18, 23): BasicPhrases.GOOD_EVENING,
         }
         greeting = [value for (key, value) in greetings.items()
                     if hour in set(np.linspace(*key, dtype=int))]
         self.convert_text_to_speech(*greeting)
-        self.convert_text_to_speech(Sounds.HELP)
+        self.convert_text_to_speech(BasicPhrases.HELP)
 
     def start(self):
         """
@@ -107,9 +107,9 @@ class PersonalAssistant:
                         waiting_for_order = True
                 except sr.UnknownValueError:
                     if waiting_for_order is False:
-                        self.convert_text_to_speech(Sounds.INCOMPREHENSIBLE_SOUND)
+                        self.convert_text_to_speech(BasicPhrases.INCOMPREHENSIBLE_SOUND)
                 except sr.RequestError:
-                    self.convert_text_to_speech(Sounds.ERROR)
+                    self.convert_text_to_speech(BasicPhrases.ERROR)
                 except sr.WaitTimeoutError:
                     pass
 
@@ -136,7 +136,7 @@ class PersonalAssistant:
         sentence_to_analyze = TextBlob(text.lower())
         polarity = sentence_to_analyze.sentiment.polarity
         if polarity < 0:
-            self.convert_text_to_speech(Sounds.SAD)
+            self.convert_text_to_speech(BasicPhrases.SAD)
             self.joke(source)
 
         tokenized_text = sentence_to_analyze.tokenize()
@@ -152,7 +152,7 @@ class PersonalAssistant:
                 self.commands[word](source, params)
                 break
         else:
-            self.convert_text_to_speech(Sounds.NO_COMMEND)
+            self.convert_text_to_speech(BasicPhrases.NO_COMMEND)
 
     def stop(self, _):
         """
@@ -160,7 +160,7 @@ class PersonalAssistant:
 
         :return: None
         """
-        self.convert_text_to_speech(Sounds.GOODBYE)
+        self.convert_text_to_speech(BasicPhrases.GOODBYE)
         self.working = False
 
     def end(self, _):
@@ -169,7 +169,7 @@ class PersonalAssistant:
 
         :return: None
         """
-        self.convert_text_to_speech(Sounds.END)
+        self.convert_text_to_speech(BasicPhrases.END)
         self.working = False
         os.system("shutdown /s /t 1")
 
@@ -179,6 +179,6 @@ class PersonalAssistant:
 
         :return: None
         """
-        self.convert_text_to_speech(Sounds.JOKE)
+        self.convert_text_to_speech(BasicPhrases.JOKE)
         joke = pyjokes.get_joke()
         self.convert_text_to_speech(joke)

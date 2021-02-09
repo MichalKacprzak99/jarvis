@@ -12,3 +12,4 @@ nltk
 SpeechRecognition
 pyaudio
 python-dotenv
+

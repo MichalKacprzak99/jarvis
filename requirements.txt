@@ -3,7 +3,7 @@ gtts
 requests
 pyjokes
 pyttsx3
-numpy==1.19.3
+numpy
 pytemperature
 wikipedia
 textblob
@@ -11,3 +11,4 @@ pymongo
 nltk
 SpeechRecognition
 pyaudio
+python-dotenv

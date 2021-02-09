@@ -1,7 +1,8 @@
-AUDIO_FOLDER = "../audio_files"
+from enum import Enum, unique
 
 
-class Sounds:
+@unique
+class Sounds(Enum):
     GOOD_MORNING = "Good Morning"
     GOOD_AFTERNOON = "Good Afternoon"
     GOOD_EVENING = "Good Evening"
@@ -24,3 +25,6 @@ class Sounds:
     HELP = "How may I help you"
     CREATE_NOTE = "What note"
     HOW_LONG = "How long"
+
+    def __str__(self):
+        return str(self.value)

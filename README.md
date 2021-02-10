@@ -2,6 +2,9 @@
 ![GitHub](https://img.shields.io/github/license/MichalKacprzak99/jarvis?logo=Github)
 ![GitHub last commit](https://img.shields.io/github/last-commit/MichalKacprzak99/jarvis)
 ![PyPI](https://img.shields.io/pypi/v/jarvis-assistant)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/jarvis-assistant)
+![PyPI - Wheel](https://img.shields.io/pypi/wheel/jarvis-assistant)
+![GitHub top language](https://img.shields.io/github/languages/top/MichalKacprzak99/jarvis)
 ![GitHub followers](https://img.shields.io/github/followers/MichalKacprzak99?style=social)
 
 ## Table of Contents
@@ -23,7 +26,7 @@ There are two ways to use my library:
 
     $ git clone https://github.com/MichalKacprzak99/jarvis.git
     $ cd jarvis/
-    $ sudo pip3 install -r requirements.txt
+    $ sudo pip install -r requirements.txt
     
  <a></a>  
   

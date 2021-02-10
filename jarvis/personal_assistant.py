@@ -33,7 +33,8 @@ class PersonalAssistant:
     name: str
         name of the personal assistant
     commands: dict
-        dictionary where are stored all implemented features
+        dictionary where are stored all implemented features, keys are "hot" words e.g. if in command is a word "joke"
+        function self.joke will be triggered
     """
     def __init__(self, name: str):
         """

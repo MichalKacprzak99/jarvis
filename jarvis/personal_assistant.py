@@ -114,7 +114,7 @@ class PersonalAssistant:
                 except sr.WaitTimeoutError:
                     pass
 
-    def introduce_yourself(self, _):
+    def introduce_yourself(self, *args):
         """
         Personal assistant introduce yourself using self.name
 
@@ -155,7 +155,7 @@ class PersonalAssistant:
         else:
             self.convert_text_to_speech(BasicPhrases.NO_COMMEND)
 
-    def stop(self, _):
+    def stop(self, *args):
         """
         The personal assistant stops the program
 
@@ -164,7 +164,7 @@ class PersonalAssistant:
         self.convert_text_to_speech(BasicPhrases.GOODBYE)
         self.working = False
 
-    def end(self, _):
+    def end(self, *args):
         """
         The personal assistant stops the program and shuts down the computer
 
@@ -174,7 +174,7 @@ class PersonalAssistant:
         self.working = False
         os.system("shutdown /s /t 1")
 
-    def joke(self, _):
+    def joke(self, *args):
         """
         Personal assistant will tell random joke(from pyjokes library)
 

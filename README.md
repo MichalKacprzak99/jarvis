@@ -2,6 +2,9 @@
 ![GitHub](https://img.shields.io/github/license/MichalKacprzak99/jarvis?logo=Github)
 ![GitHub last commit](https://img.shields.io/github/last-commit/MichalKacprzak99/jarvis)
 ![PyPI](https://img.shields.io/pypi/v/jarvis-assistant)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/jarvis-assistant)
+![PyPI - Wheel](https://img.shields.io/pypi/wheel/jarvis-assistant)
+![GitHub top language](https://img.shields.io/github/languages/top/MichalKacprzak99/jarvis)
 ![GitHub followers](https://img.shields.io/github/followers/MichalKacprzak99?style=social)
 
 ## Table of Contents
@@ -23,7 +26,7 @@ There are two ways to use my library:
 
     $ git clone https://github.com/MichalKacprzak99/jarvis.git
     $ cd jarvis/
-    $ sudo pip3 install -r requirements.txt
+    $ sudo pip install -r requirements.txt
     
  <a></a>  
   
@@ -41,7 +44,15 @@ if __name__ == '__main__':
     jarvis = Jarvis()
     jarvis.start()
 ```
- This will run jarvis and you will be able to enjoy your own voice assistant.
+ This will run jarvis and you will be able to enjoy your own voice assistant. 
+ If you wanna have access to feature which give you weather in specific city 
+ you have to do two things:
+  1. Go to https://openweathermap.org/api and create own api key/
+  2. Create .env file in the same folder as your main.py file and create environment variable like this
+   ```dosini
+# .env, private
+API_KEY_WEATHER=yours_top_secret_api_key_weather
+```
 ## Basic Personal Assistant
 Main class in this project is PersonalAssistant([code](https://github.com/MichalKacprzak99/jarvis/blob/master/jarvis/personal_assistant.py)). This class represent voice personal assistant with basic features. 
 The basic implemented features are:

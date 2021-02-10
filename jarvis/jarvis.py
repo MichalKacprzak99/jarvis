@@ -38,7 +38,7 @@ class Jarvis(PersonalAssistant):
         self.mongo_client = MongoClient()
         self.jarvis_database = self.mongo_client.jarvis_database
         self.notes = self.jarvis_database.notes
-        self.api_key_weather = Config.API_KEY_WEATHER.value
+        self.api_key_weather = Config.API_KEY_WEATHER
         self.commands.update({
             "browse": self.browse,
             "search": self.search,

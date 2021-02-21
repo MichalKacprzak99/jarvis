@@ -18,7 +18,7 @@
 
 ## What is this project about?
 We all know the Iron Man, the genius. He created Jarvis during his lifetime. 
-It was an artificial intelligence that helped him fight evil. 
+It was artificial intelligence that helped him fight evil. 
 This project is my approach to the subject of a personal assistant.
 
 ## Installation
@@ -44,8 +44,8 @@ if __name__ == '__main__':
     jarvis = Jarvis()
     jarvis.start()
 ```
- This will run jarvis and you will be able to enjoy your own voice assistant. 
- If you wanna have access to feature which give you weather in specific city 
+ This will run jarvis, and you will be able to enjoy your own voice assistant. 
+ If you want to have access to feature which give you weather in specific city 
  you have to do two things:
   1. Go to https://openweathermap.org/api and create own api key/
   2. Create .env file in the same folder as your main.py file and create environment variable like this
@@ -54,7 +54,8 @@ if __name__ == '__main__':
 API_KEY_WEATHER=yours_top_secret_api_key_weather
 ```
 ## Basic Personal Assistant
-Main class in this project is PersonalAssistant([code](https://github.com/MichalKacprzak99/jarvis/blob/master/jarvis/personal_assistant.py)). This class represent voice personal assistant with basic features. 
+Main class in this project is PersonalAssistant([code](https://github.com/MichalKacprzak99/jarvis/blob/master/jarvis/personal_assistant.py)). 
+This class represents voice personal assistant with basic features. 
 The basic implemented features are:
 * introduce yourself
 * convert text to speech
@@ -65,9 +66,8 @@ The basic implemented features are:
 * say goodbye
 
 <a></a>
-A lot of phrases which personal assistant will tell are hard coded 
-so I decided to create simple enum class called BasicPhrases([code](https://github.com/MichalKacprzak99/jarvis/blob/master/jarvis/phrases.py)).
-This is very simple class, which only purpose is to store messages, which will be said by personal assistant.
+A lot of phrases which personal assistant will tell are hard coded, so I decided to create simple enum class called BasicPhrases([code](https://github.com/MichalKacprzak99/jarvis/blob/master/jarvis/phrases.py)).
+This is very simple class, which only purpose is to store messages, which will be said by a personal assistant.
 ## Jarvis
 Jarvis([code](https://github.com/MichalKacprzak99/jarvis/blob/master/jarvis/jarvis.py)) 
 inherits after PersonalAssistant class and provide extra features:

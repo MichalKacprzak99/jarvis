@@ -5,6 +5,8 @@ import pyttsx3
 import nltk
 import numpy as np
 import speech_recognition as sr
+import joblib
+
 
 from textblob import TextBlob
 from nltk.corpus import stopwords
@@ -54,6 +56,8 @@ class PersonalAssistant:
         self.stemmer = SnowballStemmer("english")
         self.working = True
         self.name = name
+        self.classifier = joblib.load('model/model.sav')
+        self.vectorizer = joblib.load('model/vectorizer.sav')
         self.commands = {
             "introduce": self.introduce_yourself,
             "stop": self.stop,
@@ -95,7 +99,6 @@ class PersonalAssistant:
 
         :return: None
         """
-        waiting_for_order = True
         self.welcome()
         with self.micro as source:
             while self.working:
@@ -103,12 +106,10 @@ class PersonalAssistant:
                     audio = self.recognizer.listen(source, timeout=3)
                     order = self.recognizer.recognize_google(audio)
                     if self.name in order:
-                        waiting_for_order = False
+                        order = order.replace('Jarvis', '')
                         self.process_order(order, source)
-                        waiting_for_order = True
                 except sr.UnknownValueError:
-                    if waiting_for_order is False:
-                        self.convert_text_to_speech(BasicPhrases.INCOMPREHENSIBLE_SOUND)
+                    self.convert_text_to_speech(BasicPhrases.INCOMPREHENSIBLE_SOUND)
                 except sr.RequestError:
                     self.convert_text_to_speech(BasicPhrases.ERROR)
                 except sr.WaitTimeoutError:
@@ -122,38 +123,43 @@ class PersonalAssistant:
         """
         self.convert_text_to_speech(f"I am {self.name}")
 
-    def process_order(self, text: str, source: sr.Microphone):
+    def check_sentence_polarity(self, sentence_to_analyze):
+        polarity = sentence_to_analyze.sentiment.polarity
+        if polarity < 0:
+            self.convert_text_to_speech(BasicPhrases.SAD)
+            self.joke()
+
+    def process_order(self, order: str, source: sr.Microphone):
         """
-        Converted voice command is processed using nltk,TextBlob.
+        Converted voice command is processed using nltk,TextBlob.vectorizer
         Command sentence is tokenized and filtered in purpose to catch "hot" words and decide
         if sentence is connected with any implemented feature.
 
-        :param text: str
+        :param order: str
             Voice command converted to text
         :param source: speech_recognition.Microphone
             object of speech_recognition.Microphone,  which represents a physical microphone on the computer
         :return: None
         """
-        sentence_to_analyze = TextBlob(text.lower())
-        polarity = sentence_to_analyze.sentiment.polarity
-        if polarity < 0:
-            self.convert_text_to_speech(BasicPhrases.SAD)
-            self.joke(source)
+        sentence_to_analyze = TextBlob(order.lower())
+        self.check_sentence_polarity(sentence_to_analyze)
 
-        tokenized_text = sentence_to_analyze.tokenize()
-        filtered_words = [word for word in tokenized_text
-                          if word not in stopwords.words('english')]
-        tagged = nltk.pos_tag(filtered_words)
-        words = [self.stemmer.stem(word) if tag in ('VB', 'VBG') else word
-                 for (word, tag) in tagged]
-
-        for index, word in enumerate(words):
-            if word in self.commands.keys():
-                params = words[index + 1:]
-                self.commands[word](source, params)
-                break
+        order_vector = self.vectorizer.transform([order]).toarray()
+        command_category = self.classifier.predict(order_vector)[0]
+        if self.check_command_category(source, command_category):
+            tokenized_order = sentence_to_analyze.tokenize()
+            preprocess_order = [word for word in tokenized_order
+                                if word not in stopwords.words('english')]
+            self.commands[command_category](source, preprocess_order)
         else:
             self.convert_text_to_speech(BasicPhrases.NO_COMMEND)
+
+    def check_command_category(self, source: sr.Microphone, command_category: str):
+        self.convert_text_to_speech(f"I detect that your command belong to {command_category} category"
+                                    f"Am I right? Say no or yes")
+        audio = self.recognizer.listen(source)
+        answer = self.recognizer.recognize_google(audio).lower()
+        return answer == "yes"
 
     def stop(self, *args):
         """

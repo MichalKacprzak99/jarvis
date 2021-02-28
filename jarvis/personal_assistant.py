@@ -141,7 +141,7 @@ class PersonalAssistant:
             object of speech_recognition.Microphone,  which represents a physical microphone on the computer
         :return: None
         """
-        sentence_to_analyze = TextBlob(order.lower())
+        sentence_to_analyze = TextBlob(order)
         self.check_sentence_polarity(sentence_to_analyze)
 
         order_vector = self.vectorizer.transform([order]).toarray()
@@ -157,7 +157,7 @@ class PersonalAssistant:
     def check_command_category(self, source: sr.Microphone, command_category: str):
         self.convert_text_to_speech(f"I detect that your command belong to {command_category} category"
                                     f"Am I right? Say no or yes")
-        audio = self.recognizer.listen(source)
+        audio = self.recognizer.listen(source, timeout=3)
         answer = self.recognizer.recognize_google(audio).lower()
         return answer == "yes"
 

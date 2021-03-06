@@ -161,7 +161,7 @@ class PersonalAssistant:
         answer = self.recognizer.recognize_google(audio).lower()
         return answer == "yes"
 
-    def stop(self, *args):
+    def stop(self, *_):
         """
         The personal assistant stops the program
 
@@ -170,7 +170,7 @@ class PersonalAssistant:
         self.convert_text_to_speech(BasicPhrases.GOODBYE)
         self.working = False
 
-    def end(self, *args):
+    def end(self, *_):
         """
         The personal assistant stops the program and shuts down the computer
 
@@ -180,7 +180,7 @@ class PersonalAssistant:
         self.working = False
         os.system("shutdown /s /t 1")
 
-    def joke(self, *args):
+    def joke(self, *_):
         """
         Personal assistant will tell random joke(from pyjokes library)
 

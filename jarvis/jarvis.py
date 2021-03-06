@@ -1,8 +1,11 @@
 import datetime
+import time
+
 import requests
 import pytemperature
 import webbrowser as wb
 import wikipedia as wiki
+import parsedatetime
 
 
 from geograpy import extraction
@@ -45,7 +48,7 @@ class Jarvis(PersonalAssistant):
         self.commands.update({
             "browse": self.browse,
             "wikipedia": self.search_in_wikipedia,
-            "stopper": self.stopper,
+            "timer": self.stopper,
             "google": self.search_in_google,
             "weather": self.weather,
             "note": self.organize_notes,
@@ -110,31 +113,23 @@ class Jarvis(PersonalAssistant):
         :param params: part of commend after "hot" word
         :return: None
         """
-        if not params:
-            self.convert_text_to_speech(JarvisPhrases.HOW_LONG)
-            audio = self.recognizer.listen(source)
-            text = self.recognizer.recognize_google(audio)
-            num, time_unit = text.lower().split()
-        else:
-            [elem.lower() for elem in params]
-            num, time_unit = params
 
-        multipliers = {
-            "seconds": 1,
-            "minutes": 60,
-            "hours": 3600,
-        }
-        multiplier = [value for (key, value) in multipliers.items()
-                      if time_unit == key][0]
+        cal = parsedatetime.Calendar()
+        time_chunks = cal.nlp(" ".join(params))
 
-        duration = int(num) * multiplier
+        while True:
+            if len(time_chunks) > 0:
+                duration = sum((time_chunk[0] - datetime.datetime.now()).total_seconds() for time_chunk in time_chunks)
+                end = datetime.datetime.now() + datetime.timedelta(seconds=duration)
+                break
+            else:
+                self.convert_text_to_speech(JarvisPhrases.TIME)
+                audio = self.recognizer.listen(source)
+                additional_command = self.recognizer.recognize_google(audio)
+                time_chunks = cal.nlp(additional_command)
 
-        self.convert_text_to_speech(JarvisPhrases.START)
-        start = datetime.datetime.now()
-        end = start + datetime.timedelta(0, duration)
         while datetime.datetime.now() < end:
-            pass
-
+            time.sleep(1)
         self.convert_text_to_speech(JarvisPhrases.FINISH)
 
     def weather(self, source, location_params):
@@ -171,23 +166,34 @@ class Jarvis(PersonalAssistant):
             else:
                 self.convert_text_to_speech(JarvisPhrases.NO_CITY)
 
-        extractor = extraction.Extractor(text=" ".join(location_params))
+        city_extractor = extraction.Extractor(text=" ".join(location_params))
 
         while True:
-            extractor.find_entities()
-            if len(extractor.places) > 0:
-                city = extractor.places[0]
+            city_extractor.find_entities()
+            if len(city_extractor.places) > 0:
+                city = city_extractor.places[0]
                 get_weather(city)
                 break
             else:
                 self.convert_text_to_speech(JarvisPhrases.WEATHER)
                 audio = self.recognizer.listen(source)
                 location = self.recognizer.recognize_google(audio)
-                extractor.text = location
+                city_extractor.text = location
 
 
-    def organize_notes(self, source):
-        pass
+    def organize_notes(self, source, order):
+
+        self.convert_text_to_speech(f"Sir, you wanna take a note or get your last note?"
+                                    f"Choose option 1 or 2")
+        audio = self.recognizer.listen(source, timeout=3)
+        try:
+            answer = int(self.recognizer.recognize_google(audio).lower())
+            if answer == 1:
+                self.take_note(source)
+            else:
+                self.read_note()
+        except ValueError:
+            self.convert_text_to_speech(f"Sir, you just made mistake during choosing option")
 
     def take_note(self, source):
         """
@@ -206,8 +212,9 @@ class Jarvis(PersonalAssistant):
             "text": text
         }
         self.notes.insert_one(note)
+        self.convert_text_to_speech(JarvisPhrases.INSERTED_NOTE)
 
-    def read_note(self, _):
+    def read_note(self, *_):
         """
         Jarvis will read last taken note. If no notes was taken user will be informed.
 

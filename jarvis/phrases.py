@@ -15,7 +15,7 @@ class BasicPhrases(Enum):
     JOKE = "I have a joke for u"
     END = "See you again"
     START = "Ready Set Go"
-    FINISH = "Finish"
+
     INTRODUCE = "I am Jarvis"
     SAD = "You seem sad"
     NO_COMMEND = "No match for commend"
@@ -32,12 +32,14 @@ class JarvisPhrases(Enum):
     """
     NO_NOTES = "There are no notes saved"
     NO_CITY = "City Not Found"
-    BROWSE = "What do you want to browse"
-    GOOGLE = "What do you want to google"
-    WIKIPEDIA = "What do you want to search in wikipedia",
-    WEATHER = "Where do you want to check the weather"
-
-    CREATE_NOTE = "What note"
+    BROWSE = "What do you want to browse?"
+    GOOGLE = "What do you want to google?"
+    WIKIPEDIA = "What do you want to search in wikipedia?",
+    WEATHER = "Where do you want to check the weather?"
+    FINISH = "Finish"
+    TIME = "How long?"
+    CREATE_NOTE = "What do you wanna note?"
+    INSERTED_NOTE = "Note inserted"
     HOW_LONG = "How long"
 
     def __str__(self) -> str:

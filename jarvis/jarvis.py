@@ -1,9 +1,14 @@
 import datetime
-import webbrowser as wb
+import time
+
 import requests
 import pytemperature
+import webbrowser as wb
 import wikipedia as wiki
+import parsedatetime
 
+
+from geograpy import extraction
 from pymongo import DESCENDING, MongoClient
 
 
@@ -30,6 +35,7 @@ class Jarvis(PersonalAssistant):
     api_key_weather: str
         key to using weather api from "https://openweathermap.org/api"
     """
+
     def __init__(self):
         """
         Creates a new ``Jarvis`` instance.
@@ -41,14 +47,14 @@ class Jarvis(PersonalAssistant):
         self.api_key_weather = Config.API_KEY_WEATHER
         self.commands.update({
             "browse": self.browse,
-            "search": self.search,
-            "stopper": self.stopper,
-            "google": self.google,
+            "wikipedia": self.search_in_wikipedia,
+            "timer": self.stopper,
+            "google": self.search_in_google,
             "weather": self.weather,
-            "take": self.take_note,
-            "note": self.read_note,
+            "note": self.organize_notes,
         })
 
+    # this feature is not available due to not being included in trained classifier
     def browse(self, source, params):
         """
         Jarvis will open url, created by using first item(word) in params.
@@ -69,44 +75,28 @@ class Jarvis(PersonalAssistant):
 
         wb.open(url)
 
-    def google(self, source, params):
+    def search_in_google(self, params):
         """
         Jarvis will google sentence created using joined params.
         If params are empty Jarvis will aks to provide extra words.
 
-        :param source: speech_recognition.Microphone
         object of speech_recognition.Microphone,  which represents a physical microphone on the computer
         :param params: part of commend after "hot" word
         :return: None
         """
-        if not params:
-            self.convert_text_to_speech("What do you want to google")
-            audio = self.recognizer.listen(source, timeout=1)
-            google_for = self.recognizer.recognize_google(audio)
-            query = google_for.replace(" ", "+")
-        else:
-            query = "+".join(params)
+        query = "+".join(params)
         url = f"www.google.com/search?q={query}"
-
         wb.open(url)
 
-    def search(self, source, params):
+    def search_in_wikipedia(self, searching):
         """
         Jarvis will search in wikipedia sentence created using joined params.
-        If params are empty Jarvis will aks to provide extra words.
+        If searching is empty Jarvis will aks to provide extra words.
 
-        :param source: speech_recognition.Microphone
-        object of speech_recognition.Microphone,  which represents a physical microphone on the computer
-        :param params: part of commend after "hot" word
+        :param searching: part of commend after "hot" word
         :return: None
         """
-        if not params:
-            self.convert_text_to_speech(JarvisPhrases.WIKIPEDIA)
-            audio = self.recognizer.listen(source)
-            search_for = self.recognizer.recognize_google(audio)
-            result = wiki.search(search_for)[0]
-        else:
-            result = wiki.search(" ".join(params))[0]
+        result = wiki.search(" ".join(searching))[0]
         page = wiki.page(result)
         url = page.url
 
@@ -123,71 +113,87 @@ class Jarvis(PersonalAssistant):
         :param params: part of commend after "hot" word
         :return: None
         """
-        if not params:
-            self.convert_text_to_speech(JarvisPhrases.HOW_LONG)
-            audio = self.recognizer.listen(source)
-            text = self.recognizer.recognize_google(audio)
-            num, time_unit = text.lower().split()
-        else:
-            [elem.lower() for elem in params]
-            num, time_unit = params
 
-        multipliers = {
-            "seconds": 1,
-            "minutes": 60,
-            "hours": 3600,
-        }
-        multiplier = [value for (key, value) in multipliers.items()
-                      if time_unit == key][0]
+        cal = parsedatetime.Calendar()
+        time_chunks = cal.nlp(" ".join(params))
 
-        duration = int(num) * multiplier
+        while True:
+            if len(time_chunks) > 0:
+                duration = sum((time_chunk[0] - datetime.datetime.now()).total_seconds() for time_chunk in time_chunks)
+                end = datetime.datetime.now() + datetime.timedelta(seconds=duration)
+                break
+            else:
+                self.convert_text_to_speech(JarvisPhrases.TIME)
+                audio = self.recognizer.listen(source)
+                additional_command = self.recognizer.recognize_google(audio)
+                time_chunks = cal.nlp(additional_command)
 
-        self.convert_text_to_speech(JarvisPhrases.START)
-        start = datetime.datetime.now()
-        end = start + datetime.timedelta(0, duration)
         while datetime.datetime.now() < end:
-            pass
-
+            time.sleep(1)
         self.convert_text_to_speech(JarvisPhrases.FINISH)
 
-    def weather(self, source, params):
+    def weather(self, source, location_params):
         """
         Jarvis will give you current weather in given city.
         If params are empty Jarvis will ask for name of city.
 
         :param source: speech_recognition.Microphone
         object of speech_recognition.Microphone,  which represents a physical microphone on the computer
-        :param params: part of commend after "hot" word
+        :param location_params: part of commend after "hot" word
         :return: None
         """
-        if not params:
-            self.convert_text_to_speech(JarvisPhrases.WEATHER)
-            audio = self.recognizer.listen(source)
-            city_name = self.recognizer.recognize_google(audio)
-        else:
-            city_name = params[0]
+
         base_url = "http://api.openweathermap.org/data/2.5/weather?"
 
-        complete_url = f"{base_url}appid={self.api_key_weather}&q={city_name}"
-        response = requests.get(complete_url).json()
-        if response["cod"] != "404":
+        def get_weather(city):
+            complete_url = f"{base_url}appid={self.api_key_weather}&q={city}"
+            response = requests.get(complete_url).json()
+            if response["cod"] != "404":
+                weather = response["main"]
 
-            weather = response["main"]
+                current_temperature = round(pytemperature.k2c(weather["temp"]), 2)
+                current_temperature = f'{"minus" if current_temperature < 0 else ""}' + str(current_temperature)
+                current_pressure = weather["pressure"]
 
-            current_temperature = round(pytemperature.k2c(weather["temp"]), 2)
-            current_temperature = f'{"minus" if current_temperature < 0 else ""}' + str(current_temperature)
-            current_pressure = weather["pressure"]
+                current_humidity = weather["humidity"]
 
-            current_humidity = weather["humidity"]
+                weather_description = response["weather"][0]["description"]
 
-            weather_description = response["weather"][0]["description"]
+                self.convert_text_to_speech(f'Temperature (in celsius unit) = {current_temperature} '
+                                            f'atmospheric pressure (in hPa unit) = {current_pressure} '
+                                            f' humidity (in percentage) = {current_humidity} '
+                                            f'description = {weather_description}')
+            else:
+                self.convert_text_to_speech(JarvisPhrases.NO_CITY)
 
-            self.convert_text_to_speech(f'Temperature (in celsius unit) = {current_temperature} '
-                                        f'atmospheric pressure (in hPa unit) = {current_pressure} '
-                                        f' humidity (in percentage) = {current_humidity} '
-                                        f'description = {weather_description}')
-        else:
-            self.convert_text_to_speech(JarvisPhrases.NO_CITY)
+        city_extractor = extraction.Extractor(text=" ".join(location_params))
+
+        while True:
+            city_extractor.find_entities()
+            if len(city_extractor.places) > 0:
+                city = city_extractor.places[0]
+                get_weather(city)
+                break
+            else:
+                self.convert_text_to_speech(JarvisPhrases.WEATHER)
+                audio = self.recognizer.listen(source)
+                location = self.recognizer.recognize_google(audio)
+                city_extractor.text = location
+
+
+    def organize_notes(self, source, order):
+
+        self.convert_text_to_speech(f"Sir, you wanna take a note or get your last note?"
+                                    f"Choose option 1 or 2")
+        audio = self.recognizer.listen(source, timeout=3)
+        try:
+            answer = int(self.recognizer.recognize_google(audio).lower())
+            if answer == 1:
+                self.take_note(source)
+            else:
+                self.read_note()
+        except ValueError:
+            self.convert_text_to_speech(f"Sir, you just made mistake during choosing option")
 
     def take_note(self, source):
         """
@@ -206,8 +212,9 @@ class Jarvis(PersonalAssistant):
             "text": text
         }
         self.notes.insert_one(note)
+        self.convert_text_to_speech(JarvisPhrases.INSERTED_NOTE)
 
-    def read_note(self, _):
+    def read_note(self, *_):
         """
         Jarvis will read last taken note. If no notes was taken user will be informed.
 
